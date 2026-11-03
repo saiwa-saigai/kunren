@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>意見管理（委員会用）</title>
+<style>
+:root{color-scheme:light;--bg:#F7F5F0;--paper:#fff;--ink:#23262B;--mute:#6A6F78;--line:#E1DDD3;--soft:#EFEBE2;--accent:#B4531F}
+*{box-sizing:border-box}html{font-size:18px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;line-height:1.6}
+.w{max-width:1200px;margin:0 auto;padding:20px 24px 80px}
+h1{font-size:1.5rem;margin:0 0 4px}.sub{color:var(--mute);font-size:.85rem;margin:0 0 16px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button,select,input,textarea{font:inherit}
+button{background:#23262B;color:#fff;border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+button.sec{background:#fff;color:var(--ink);border:1px solid #C9C3B5}
+.chip{background:#fff;color:var(--ink);border:1px solid #C9C3B5;border-radius:99px;padding:3px 14px;font-size:.85rem}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sum{display:flex;gap:10px;flex-wrap:wrap}.sum span{background:var(--soft);border-radius:8px;padding:4px 12px;font-size:.9rem}
+.drop{border:2px dashed #C9C3B5;border-radius:12px;padding:18px;text-align:center;color:var(--mute)}
+.drop.on{background:#FFF6E8;border-color:var(--accent)}
+h2{font-size:1.15rem;margin:22px 0 8px;padding-left:10px;border-left:6px solid var(--accent)}
+h3{font-size:.95rem;margin:14px 0 6px;color:var(--mute)}
+.it{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:grid;grid-template-columns:1fr 150px;gap:6px 14px}
+.it .tx{white-space:pre-wrap}.it .mt{color:var(--mute);font-size:.78rem}
+.it select{width:100%;padding:5px;border:1px solid #C9C3B5;border-radius:6px;background:#fff}
+.it textarea{grid-column:1/-1;width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:#FFFDF2;min-height:2.4em;resize:vertical}
+.st-採用{border-left:6px solid #2F7D4F}.st-保留{border-left:6px solid #B38A1B}.st-不採用{border-left:6px solid #9A9A9A}.st-済{border-left:6px solid #3E7CB1;opacity:.7}.st-未対応{border-left:6px solid #B4531F}
+.empty{color:var(--mute);padding:20px;text-align:center}
+@media(max-width:700px){.it{grid-template-columns:1fr}}
+</style></head><body><div class="w">
+<h1>意見管理</h1><p class="sub">災害訓練 資料室フォームの回答を整理します。状態とメモは、このブラウザに保存されます。</p>
+<div class="box"><div class="drop" id="drop">回答のCSVをここにドロップ、または <button class="sec" id="pick">ファイルを選ぶ</button><input type="file" id="file" accept=".csv,text/csv" hidden>
+<div style="font-size:.8rem;margin-top:6px">同じCSVを新しい回答つきで読み込み直しても、付けた状態とメモは残ります。</div></div></div>
+<div class="box" id="ctl" hidden>
+<div class="sum" id="sum"></div>
+<div class="row" style="margin-top:10px" id="fs"></div>
+<div class="row" style="margin-top:10px"><select id="fd"></select><select id="fp"><option value="dept">部署・場面ごと</option><option value="time">受信順</option></select>
+<input id="fq" type="search" placeholder="キーワード" style="padding:5px 10px;border:1px solid #C9C3B5;border-radius:6px">
+<span style="flex:1"></span><button class="sec" id="exp">整理結果をCSVで保存</button><button class="sec" id="bk">状態のバックアップ</button><button class="sec" id="rs">バックアップを戻す</button><input type="file" id="bkf" accept=".json" hidden></div></div>
+<div id="out"><div class="empty">まだ読み込んでいません。</div></div></div>
+<script>
+const DEPTS=["新設部門・外来", "腎センター", "手術室", "病棟", "薬剤部", "検査科", "放射線科", "栄養科", "リハ科", "ME他", "経理・施設設備", "広報・地域連携", "医局"],ST=["未対応","採用","保留","不採用","済"];
+const $=i=>document.getElementById(i);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let rows=[],S={},f={st:"",dept:"",q:"",mode:"dept"};
+try{S=JSON.parse(localStorage.getItem("iken_state")||"{}");const r=localStorage.getItem("iken_rows");if(r)rows=JSON.parse(r)}catch(e){}
+const save=()=>{try{localStorage.setItem("iken_state",JSON.stringify(S));localStorage.setItem("iken_rows",JSON.stringify(rows))}catch(e){}};
+function parse(t){const R=[];let r=[],c="",q=false;t=t.replace(/^﻿/,"");
+  for(let i=0;i<t.length;i++){const ch=t[i];
+    if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch=='"')q=true;else if(ch==","){r.push(c);c=""}
+    else if(ch=="\n"||ch=="\r"){if(ch=="\r"&&t[i+1]=="\n")i++;r.push(c);c="";if(r.some(x=>x!==""))R.push(r);r=[]}
+    else c+=ch}
+  if(c!==""||r.length){r.push(c);R.push(r)}return R}
+const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)};
+function load(text){const R=parse(text);if(R.length<2){alert("データがありません");return}
+  const H=R[0].map(x=>x.trim()),ix=k=>H.findIndex(h=>h.includes(k));
+  const it=ix("タイムスタンプ"),ina=ix("お名前"),id=ix("部署"),is=ix("場面"),io=ix("ご意見");
+  if(io<0){alert("「ご意見」の列が見つかりません");return}
+  rows=R.slice(1).map(r=>{const o={ts:r[it]||"",name:r[ina]||"",dept:(r[id]||"").trim()||"（部署なし）",scene:(r[is]||"").trim(),text:r[io]||""};o.id=hash(o.ts+"|"+o.name+"|"+o.text);return o}).filter(o=>o.text.trim());
+  save();render()}
+const tmin=s=>{const m=/^(\d+):(\d+)/.exec(s);return m?(+m[1])*60+(+m[2]):99999};
+const dord=d=>{const i=DEPTS.indexOf(d);return i<0?(d==="全体"?-1:99):i};
+const get=id=>S[id]||{st:"未対応",memo:""};
+function render(){
+  $("ctl").hidden=!rows.length;if(!rows.length){$("out").innerHTML='<div class="empty">まだ読み込んでいません。</div>';return}
+  const cnt={};ST.forEach(s=>cnt[s]=0);rows.forEach(r=>cnt[get(r.id).st]++);
+  $("sum").innerHTML=`<span>全 ${rows.length} 件</span>`+ST.map(s=>`<span>${s} ${cnt[s]}</span>`).join("");
+  $("fs").innerHTML=["すべて",...ST].map(s=>`<button class="chip ${(f.st||"すべて")===s?'on':''}" data-s="${s==="すべて"?"":s}">${s}</button>`).join("");
+  $("fs").querySelectorAll("button").forEach(b=>b.onclick=()=>{f.st=b.dataset.s;render()});
+  const ds=[...new Set(rows.map(r=>r.dept))].sort((a,b)=>dord(a)-dord(b));
+  $("fd").innerHTML='<option value="">すべての部署</option>'+ds.map(d=>`<option ${f.dept===d?'selected':''}>${esc(d)}</option>`).join("");
+  let L=rows.filter(r=>(!f.st||get(r.id).st===f.st)&&(!f.dept||r.dept===f.dept)&&(!f.q||(r.text+r.scene+r.name+get(r.id).memo).includes(f.q)));
+  let h="";
+  if(f.mode==="time"){L.slice().reverse().forEach(r=>h+=item(r,true))}
+  else{L.sort((a,b)=>dord(a.dept)-dord(b.dept)||tmin(a.scene)-tmin(b.scene)||a.scene.localeCompare(b.scene));
+    let cd="",cs=null;L.forEach(r=>{if(r.dept!==cd){cd=r.dept;cs=null;h+=`<h2>${esc(cd)}</h2>`}
+      if(r.scene!==cs){cs=r.scene;h+=`<h3>${esc(cs||"（場面なし）")}</h3>`}h+=item(r,false)})}
+  $("out").innerHTML=h||'<div class="empty">該当する意見はありません。</div>';
+  $("out").querySelectorAll("select").forEach(s=>s.onchange=()=>{S[s.dataset.i]=Object.assign({},get(s.dataset.i),{st:s.value});save();render()});
+  $("out").querySelectorAll("textarea").forEach(t=>t.oninput=()=>{S[t.dataset.i]=Object.assign({},get(t.dataset.i),{memo:t.value});save()});
+}
+function item(r,full){const g=get(r.id);
+  return `<div class="it st-${g.st}"><div><div class="tx">${esc(r.text)}</div><div class="mt">${esc(r.name||"（名前なし）")}　${esc(r.ts)}${full?"　"+esc(r.dept)+" ／ "+esc(r.scene):""}</div></div>
+  <select data-i="${r.id}">${ST.map(s=>`<option ${g.st===s?'selected':''}>${s}</option>`).join("")}</select>
+  <textarea data-i="${r.id}" placeholder="メモ（対応方針など）">${esc(g.memo)}</textarea></div>`}
+$("fd").onchange=e=>{f.dept=e.target.value;render()};$("fp").onchange=e=>{f.mode=e.target.value;render()};
+$("fq").oninput=e=>{f.q=e.target.value;const p=e.target.selectionStart;render();const x=$("fq");x.focus();x.setSelectionRange(p,p)};
+$("pick").onclick=()=>$("file").click();
+const rd=fl=>{const r=new FileReader();r.onload=()=>load(r.result);r.readAsText(fl,"utf-8")};
+$("file").onchange=e=>{if(e.target.files[0])rd(e.target.files[0]);e.target.value=""};
+["dragover","dragenter"].forEach(n=>$("drop").addEventListener(n,e=>{e.preventDefault();$("drop").classList.add("on")}));
+["dragleave","drop"].forEach(n=>$("drop").addEventListener(n,e=>{e.preventDefault();$("drop").classList.remove("on")}));
+$("drop").addEventListener("drop",e=>{if(e.dataTransfer.files[0])rd(e.dataTransfer.files[0])});
+const dl=(name,txt,type)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()};
+const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,"0");return ""+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"_"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())};
+const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+$("exp").onclick=()=>{const L=rows.slice().sort((a,b)=>dord(a.dept)-dord(b.dept)||tmin(a.scene)-tmin(b.scene));
+  dl("iken_seiri_"+stamp()+".csv","﻿"+["部署,場面,状態,ご意見,メモ,お名前,受付日時",...L.map(r=>{const g=get(r.id);return [r.dept,r.scene,g.st,r.text,g.memo,r.name,r.ts].map(q).join(",")})].join("\r\n"),"text/csv")};
+$("bk").onclick=()=>dl("iken_backup_"+stamp()+".json",JSON.stringify(S),"application/json");
+$("rs").onclick=()=>$("bkf").click();
+$("bkf").onchange=e=>{const fl=e.target.files[0];if(!fl)return;const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render()}catch(x){alert("読み込めません")}};r.readAsText(fl);e.target.value=""};
+render();
+</script></body></html>
