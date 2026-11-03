@@ -58,7 +58,7 @@ input[type=search],input[type=text]{border:1px solid var(--line);background:var(
 .act .w{font-weight:700;color:var(--c)}
 .act .d{font-size:.9rem}
 .act .w{font-size:.9rem}
-.lk{cursor:pointer}.lk:hover td{background:#FBF7EE}.lk .dp u{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.mx{overflow-x:auto}.mx table{min-width:1300px}.mx th,.mx td{border:1px solid var(--line);padding:6px 8px;font-size:.9rem;vertical-align:top}.mx th{position:sticky;top:0;background:var(--soft);text-align:center;font-size:.82rem;cursor:pointer;border-top:4px solid var(--c)}.mx td.tm{font-weight:700;white-space:nowrap;font-size:1.05rem;background:var(--soft);position:sticky;left:0}.mx a.cell{display:block;padding:3px 8px;border-radius:6px;border-left:4px solid var(--c);background:#FBF7EE;margin:0 0 4px;cursor:pointer;color:var(--ink)}.mx a.cell:hover{background:#F3E9D6}.seg{display:inline-flex;border:1px solid var(--ink);border-radius:8px;overflow:hidden}.seg button{border:0;background:var(--paper);padding:5px 16px;cursor:pointer;font-size:.85rem}.seg button.on{background:var(--ink);color:#fff}.lk{cursor:pointer}.lk:hover td{background:#FBF7EE}.lk .dp u{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 th,td{padding:8px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.9rem}
 th{background:var(--soft);font-size:.78rem;letter-spacing:.05em;color:var(--mute)}
@@ -67,7 +67,7 @@ td.n input{width:100%;min-width:140px;font-size:1rem;background:#FFFDF2}
 .scroll{overflow-x:auto}
 .note{color:var(--mute);font-size:.82rem;margin:8px 0}
 .infoline{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:.9rem;margin-bottom:6px}
-@media (max-width:900px){table,tbody,tr,td{display:block;width:100%}tr:has(th){display:none}tr{padding:8px 0;border-bottom:1px solid var(--line)}td{border:0;padding:2px 12px}td.r{white-space:normal}td.n input{min-width:0}.wrap{grid-template-columns:1fr}nav{position:static;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;max-height:none;padding-bottom:6px}nav a{width:auto;white-space:nowrap;flex:none}nav .brand,nav .grp{display:none}.tl td.tm{font-weight:700;white-space:nowrap;font-size:1.05rem}.tl td.dp{white-space:nowrap}.tl tr.new td{border-top:2px solid #BDB7A8}.ass td:first-child{width:9em;font-weight:700;white-space:nowrap;color:var(--mute)}.time{padding-left:0}.time>.t{position:static;width:auto;margin-bottom:4px}.act{grid-template-columns:1fr;gap:2px}.scene header .pl{margin-left:0}}
+@media (max-width:900px){.mx table{display:table}.mx tbody{display:table-row-group}.mx tr,.mx tr:has(th){display:table-row;padding:0;border:0}.mx td,.mx th{display:table-cell;width:auto}table,tbody,tr,td{display:block;width:100%}tr:has(th){display:none}tr{padding:8px 0;border-bottom:1px solid var(--line)}td{border:0;padding:2px 12px}td.r{white-space:normal}td.n input{min-width:0}.wrap{grid-template-columns:1fr}nav{position:static;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;max-height:none;padding-bottom:6px}nav a{width:auto;white-space:nowrap;flex:none}nav .brand,nav .grp{display:none}.tl td.tm{font-weight:700;white-space:nowrap;font-size:1.05rem}.tl td.dp{white-space:nowrap}.tl tr.new td{border-top:2px solid #BDB7A8}.ass td:first-child{width:9em;font-weight:700;white-space:nowrap;color:var(--mute)}.time{padding-left:0}.time>.t{position:static;width:auto;margin-bottom:4px}.act{grid-template-columns:1fr;gap:2px}.scene header .pl{margin-left:0}}
 </style>
 <div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
 <script>
@@ -84,7 +84,7 @@ function go(v,j){view=v;render();if(j!=null){const e=document.getElementById("sc
 function nav(){
   const mk=(v,t,c)=>`<a data-v="${esc(v)}" class="${view===v?'on':''}">${c?`<i class="dot" style="--c:${c}"></i>`:''}${esc(t)}</a>`;
   let h=`<div class="brand">災害訓練 資料室<small>令和9年3月6日（土）</small></div>`+mk("home","入口");
-  h+=`<div class="grp">全体</div>`+mk("assume","訓練想定")+mk("timeline","タイムライン（全体）")+mk("alltl","タイムライン（全部署）");
+  h+=`<div class="grp">全体</div>`+mk("assume","訓練想定")+mk("timeline","全体の流れ（あらすじ）")+mk("alltl","タイムライン（全部署）");
   h+=`<div class="grp">部署別台本</div>`+names.map(n=>mk("d:"+n,n,col(n))).join("");
   h+=`<div class="grp">巻末</div>`+mk("roster","全体配役表");
   $("#nav").innerHTML=h;$("#nav").querySelectorAll("a").forEach(a=>a.onclick=()=>go(a.dataset.v));
@@ -93,7 +93,7 @@ function home(){
   let h=`<h1>災害訓練 資料室</h1><p class="sub">令和8年度 院内災害訓練　令和9年3月6日（土）午前</p>
   <h2>全体</h2><div class="cards">
   <button class="card" data-v="assume" style="--c:#8C6A2E"><b>訓練想定</b><span>日時、被害、使える設備、場所</span></button>
-  <button class="card" data-v="timeline" style="--c:#2F7D6B"><b>タイムライン（全体）</b><span>全体の進行</span></button>
+  <button class="card" data-v="timeline" style="--c:#2F7D6B"><b>全体の流れ（あらすじ）</b><span>全体の進行</span></button>
   <button class="card" data-v="alltl" style="--c:#3E7CB1"><b>タイムライン（全部署）</b><span>全部署の動き。押すと台本へ</span></button>
   <button class="card" data-v="roster" style="--c:#7A5BA6"><b>全体配役表</b><span>全${D.roster.length}役</span></button></div>
   <h2>部署別台本</h2><div class="cards">`;
@@ -106,7 +106,7 @@ function assume(){
   $("#main").innerHTML=h+`</table></div>`;
 }
 function timeline(){
-  let h=`<h1>タイムライン（全体）</h1><p class="sub">全体の進行です。部署ごとの動きは、「タイムライン（全部署）」と部署別台本にあります。</p><div class="scroll"><table class="tl"><tr><th>時刻</th><th>部署</th><th>主な動き</th></tr>`;
+  let h=`<h1>全体の流れ（あらすじ）</h1><p class="sub">全体の進行です。部署ごとの動きは、「タイムライン（全部署）」と部署別台本にあります。</p><div class="scroll"><table class="tl"><tr><th>時刻</th><th>部署</th><th>主な動き</th></tr>`;
   let prev="";
   D.timeline.forEach(r=>{
     const c=names.find(n=>r[1].includes(n));
@@ -114,14 +114,37 @@ function timeline(){
   $("#main").innerHTML=h+`</table></div>`;
 }
 function alltl(){
-  let h=`<h1>タイムライン（全部署）</h1><p class="sub">行を押すと、その部署の台本の場面が開きます。</p><div class="bar"><button class="chip ${state.dept===""?'on':''}" data-d="">すべて</button>`+names.map(n=>`<button class="chip ${state.dept===n?'on':''}" data-d="${esc(n)}"><i class="dot" style="--c:${col(n)}"></i>${esc(n)}</button>`).join("")+`</div><div class="scroll"><table class="tl"><tr><th>時刻</th><th>部署</th><th>主な動き</th><th>場所</th></tr>`;
-  let prev="";
-  D.alltl.forEach(r=>{
-    if(state.dept&&r.dept!==state.dept)return;
-    h+=`<tr class="lk ${r.t!==prev?'new':''}" data-d="${esc(r.dept)}" data-j="${r.sj}"><td class="tm">${r.t!==prev?esc(r.t):''}</td><td class="dp"><i class="dot" style="--c:${col(r.dept)};display:inline-block;margin-right:6px"></i><u>${esc(r.dept)}</u></td><td><b>${esc(r.title)}</b>：${esc(r.act)}</td><td>${esc(r.place)}</td></tr>`;prev=r.t});
-  $("#main").innerHTML=h+`</table></div>`;
+  state.mode=state.mode||"list";
+  const seg=`<div class="seg"><button data-m="list" class="${state.mode==="list"?'on':''}">一覧</button><button data-m="matrix" class="${state.mode==="matrix"?'on':''}">表</button></div>`;
+  let h=`<h1>タイムライン（全部署）</h1><p class="sub">${state.mode==="list"?'行を押すと、その部署の台本の場面が開きます。':'マスを押すと、その部署の台本の場面が開きます。部署名を押すと、台本の最初が開きます。'}</p><div class="bar">${seg}`;
+  if(state.mode==="list"){
+    h+=`<button class="chip ${state.dept===""?'on':''}" data-d="">すべて</button>`+names.map(n=>`<button class="chip ${state.dept===n?'on':''}" data-d="${esc(n)}"><i class="dot" style="--c:${col(n)}"></i>${esc(n)}</button>`).join("");
+  }
+  h+=`</div>`;
+  if(state.mode==="list"){
+    h+=`<div class="scroll"><table class="tl"><tr><th>時刻</th><th>部署</th><th>主な動き</th><th>場所</th></tr>`;
+    let prev="";
+    D.alltl.forEach(r=>{
+      if(state.dept&&r.dept!==state.dept)return;
+      h+=`<tr class="lk ${r.t!==prev?'new':''}" data-d="${esc(r.dept)}" data-j="${r.sj}"><td class="tm">${r.t!==prev?esc(r.t):''}</td><td class="dp"><i class="dot" style="--c:${col(r.dept)};display:inline-block;margin-right:6px"></i><u>${esc(r.dept)}</u></td><td><b>${esc(r.title)}</b>：${esc(r.act)}</td><td>${esc(r.place)}</td></tr>`;prev=r.t});
+    h+=`</table></div>`;
+  }else{
+    const times=[];D.alltl.forEach(r=>{if(!times.includes(r.t))times.push(r.t)});
+    h+=`<div class="mx"><table><tr><th style="--c:#999;cursor:default;left:0;z-index:2">時刻</th>`+names.map(n=>`<th style="--c:${col(n)}" data-hd="${esc(n)}">${esc(n)}</th>`).join("")+`</tr>`;
+    times.forEach(t=>{
+      h+=`<tr><td class="tm">${esc(t)}</td>`;
+      names.forEach(n=>{
+        const cs=D.alltl.filter(r=>r.t===t&&r.dept===n);
+        h+=`<td>`+cs.map(r=>`<a class="cell" style="--c:${col(n)}" data-d="${esc(n)}" data-j="${r.sj}">${esc(r.title)}</a>`).join("")+`</td>`});
+      h+=`</tr>`});
+    h+=`</table></div>`;
+  }
+  $("#main").innerHTML=h;
+  $("#main").querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{state.mode=b.dataset.m;alltl()});
   $("#main").querySelectorAll(".chip[data-d]").forEach(b=>b.onclick=()=>{state.dept=b.dataset.d;alltl()});
   $("#main").querySelectorAll("tr.lk").forEach(t=>t.onclick=()=>go("d:"+t.dataset.d,+t.dataset.j));
+  $("#main").querySelectorAll("a.cell").forEach(t=>t.onclick=()=>go("d:"+t.dataset.d,+t.dataset.j));
+  $("#main").querySelectorAll("th[data-hd]").forEach(t=>t.onclick=()=>go("d:"+t.dataset.hd));
 }
 function nameInput(i){return `<input type="text" data-i="${i}" value="${esc(store[i]||"")}" placeholder="氏名">`}
 function bindNames(r){r.querySelectorAll("input[data-i]").forEach(i=>i.addEventListener("input",()=>{store[i.dataset.i]=i.value;save()}))}
