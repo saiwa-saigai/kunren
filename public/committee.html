@@ -9,7 +9,7 @@
 html{font-size:18px}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;line-height:1.7;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
 button,input,select{font:inherit;color:inherit}
-.wrap{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:180px minmax(0,1fr);gap:22px;padding-block:20px 80px}
+.wrap{max-width:1560px;margin:0 auto;display:grid;grid-template-columns:180px minmax(0,1fr);gap:22px;padding-block:20px 80px}
 nav{position:sticky;top:12px;align-self:start;display:flex;flex-direction:column;gap:2px;max-height:calc(100vh - 24px);overflow:auto}
 nav .brand{font-weight:700;font-size:1.05rem;margin:0 0 10px;padding:0 10px}
 nav .brand small{display:block;font-weight:400;color:var(--mute);font-size:.72rem}
@@ -37,7 +37,7 @@ h2{font-size:1.15rem;margin:30px 0 10px}
 input[type=search],input[type=text]{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 10px;min-width:0}
 .btn{border:1px solid var(--ink);background:var(--paper);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.85rem}
 .btn.done{background:var(--ok);border-color:var(--ok);color:#fff}
-.tl td.tm{font-weight:700;white-space:nowrap;font-size:1.05rem}.tl td.dp{white-space:nowrap}.tl tr.new td{border-top:2px solid #BDB7A8}.ass td:first-child{width:9em;font-weight:700;white-space:nowrap;color:var(--mute)}.time{position:relative;padding-left:96px;margin-bottom:22px}
+.tl td.tm{font-weight:700;white-space:normal;width:4.4em;font-size:1.05rem;line-height:1.35}.tl td.dp{white-space:nowrap}.tl tr.new td{border-top:2px solid #BDB7A8}.ass td:first-child{width:9em;font-weight:700;white-space:nowrap;color:var(--mute)}.time{position:relative;padding-left:96px;margin-bottom:22px}
 .time>.t{position:absolute;left:0;top:2px;font-size:1.5rem;font-weight:700;width:84px;line-height:1.1;white-space:nowrap}
 .time>.t small{display:block;font-size:.68rem;font-weight:400;color:var(--mute);margin-top:4px}
 .box{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:8px}
@@ -67,7 +67,7 @@ td.n input{width:100%;min-width:140px;font-size:1rem;background:#FFFDF2}
 .scroll{overflow-x:auto}
 .note{color:var(--mute);font-size:.82rem;margin:8px 0}
 .infoline{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:.9rem;margin-bottom:6px}
-@media (max-width:900px){.mx table{display:table}.mx tbody{display:table-row-group}.mx tr,.mx tr:has(th){display:table-row;padding:0;border:0}.mx td,.mx th{display:table-cell;width:auto}table,tbody,tr,td{display:block;width:100%}tr:has(th){display:none}tr{padding:8px 0;border-bottom:1px solid var(--line)}td{border:0;padding:2px 12px}td.r{white-space:normal}td.n input{min-width:0}.wrap{grid-template-columns:1fr}nav{position:static;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;max-height:none;padding-bottom:6px}nav a{width:auto;white-space:nowrap;flex:none}nav .brand,nav .grp{display:none}.tl td.tm{font-weight:700;white-space:nowrap;font-size:1.05rem}.tl td.dp{white-space:nowrap}.tl tr.new td{border-top:2px solid #BDB7A8}.ass td:first-child{width:9em;font-weight:700;white-space:nowrap;color:var(--mute)}.time{padding-left:0}.time>.t{position:static;width:auto;margin-bottom:4px}.act{grid-template-columns:1fr;gap:2px}.scene header .pl{margin-left:0}}
+@media (max-width:900px){.mx table{display:table}.mx tbody{display:table-row-group}.mx tr,.mx tr:has(th){display:table-row;padding:0;border:0}.mx td,.mx th{display:table-cell;width:auto}table,tbody,tr,td{display:block;width:100%}tr:has(th){display:none}tr{padding:8px 0;border-bottom:1px solid var(--line)}td{border:0;padding:2px 12px}td.r{white-space:normal}td.n input{min-width:0}.wrap{grid-template-columns:1fr}nav{position:static;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;max-height:none;padding-bottom:6px}nav a{width:auto;white-space:nowrap;flex:none}nav .brand,nav .grp{display:none}.tl td.tm{font-weight:700;white-space:normal;width:4.4em;font-size:1.05rem;line-height:1.35}.tl td.dp{white-space:nowrap}.tl tr.new td{border-top:2px solid #BDB7A8}.ass td:first-child{width:9em;font-weight:700;white-space:nowrap;color:var(--mute)}.time{padding-left:0}.time>.t{position:static;width:auto;margin-bottom:4px}.act{grid-template-columns:1fr;gap:2px}.scene header .pl{margin-left:0}}
 </style>
 <div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
 <script>
@@ -76,6 +76,7 @@ const COL=["#B4531F","#2F7D6B","#7A5BA6","#B38A1B","#3E7CB1","#A33F5B","#5F8F2E"
 const names=D.depts;
 const col=n=>{const i=names.indexOf(n);return i<0?"#999":COL[i%COL.length]};
 const $=(s,r=document)=>r.querySelector(s);
+const tmh=t=>String(t).replace(/〜/g,"〜<br>");
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let store={};try{store=JSON.parse(localStorage.getItem("drill_names2")||"{}")}catch(e){}
 const save=()=>{try{localStorage.setItem("drill_names2",JSON.stringify(store))}catch(e){}};
@@ -110,7 +111,7 @@ function timeline(){
   let prev="";
   D.timeline.forEach(r=>{
     const c=names.find(n=>r[1].includes(n));
-    h+=`<tr class="${r[0]!==prev?'new':''}"><td class="tm">${r[0]!==prev?esc(r[0]):''}</td><td class="dp">${c?`<i class="dot" style="--c:${col(c)};display:inline-block;margin-right:6px"></i>`:''}${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`;prev=r[0]});
+    h+=`<tr class="${r[0]!==prev?'new':''}"><td class="tm">${r[0]!==prev?tmh(r[0]):''}</td><td class="dp">${c?`<i class="dot" style="--c:${col(c)};display:inline-block;margin-right:6px"></i>`:''}${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`;prev=r[0]});
   $("#main").innerHTML=h+`</table></div>`;
 }
 function alltl(){
@@ -126,13 +127,13 @@ function alltl(){
     let prev="";
     D.alltl.forEach(r=>{
       if(state.dept&&r.dept!==state.dept)return;
-      h+=`<tr class="lk ${r.t!==prev?'new':''}" data-d="${esc(r.dept)}" data-j="${r.sj}"><td class="tm">${r.t!==prev?esc(r.t):''}</td><td class="dp"><i class="dot" style="--c:${col(r.dept)};display:inline-block;margin-right:6px"></i><u>${esc(r.dept)}</u></td><td><b>${esc(r.title)}</b>：${esc(r.act)}</td><td>${esc(r.place)}</td></tr>`;prev=r.t});
+      h+=`<tr class="lk ${r.t!==prev?'new':''}" data-d="${esc(r.dept)}" data-j="${r.sj}"><td class="tm">${r.t!==prev?tmh(r.t):''}</td><td class="dp"><i class="dot" style="--c:${col(r.dept)};display:inline-block;margin-right:6px"></i><u>${esc(r.dept)}</u></td><td><b>${esc(r.title)}</b>：${esc(r.act)}</td><td>${esc(r.place)}</td></tr>`;prev=r.t});
     h+=`</table></div>`;
   }else{
     const times=[];D.alltl.forEach(r=>{if(!times.includes(r.t))times.push(r.t)});
     h+=`<div class="mx"><table><tr><th class="tc" style="--c:#999">時刻</th>`+names.map(n=>`<th style="--c:${col(n)}" data-hd="${esc(n)}">${esc(n)}</th>`).join("")+`</tr>`;
     times.forEach(t=>{
-      h+=`<tr><td class="tm">${esc(t).replace("〜","〜<br>")}</td>`;
+      h+=`<tr><td class="tm">${tmh(t)}</td>`;
       names.forEach(n=>{
         const cs=D.alltl.filter(r=>r.t===t&&r.dept===n);
         h+=`<td>`+cs.map(r=>`<a class="cell" style="--c:${col(n)}" data-d="${esc(n)}" data-j="${r.sj}">${esc(r.title)}</a>`).join("")+`</td>`});
