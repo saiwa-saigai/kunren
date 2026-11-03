@@ -58,7 +58,7 @@ input[type=search],input[type=text]{border:1px solid var(--line);background:var(
 .act .w{font-weight:700;color:var(--c)}
 .act .d{font-size:.9rem}
 .act .w{font-size:.9rem}
-.mx{overflow-x:auto}.mx table{min-width:1300px}.mx th,.mx td{border:1px solid var(--line);padding:6px 8px;font-size:.9rem;vertical-align:top}.mx th{position:sticky;top:0;background:var(--soft);text-align:center;font-size:.82rem;cursor:pointer;border-top:4px solid var(--c)}.mx td.tm{font-weight:700;white-space:nowrap;font-size:1.05rem;background:var(--soft);position:sticky;left:0}.mx a.cell{display:block;padding:3px 8px;border-radius:6px;border-left:4px solid var(--c);background:#FBF7EE;margin:0 0 4px;cursor:pointer;color:var(--ink)}.mx a.cell:hover{background:#F3E9D6}.seg{display:inline-flex;border:1px solid var(--ink);border-radius:8px;overflow:hidden}.seg button{border:0;background:var(--paper);padding:5px 16px;cursor:pointer;font-size:.85rem}.seg button.on{background:var(--ink);color:#fff}.lk{cursor:pointer}.lk:hover td{background:#FBF7EE}.lk .dp u{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.mx{overflow-x:auto}.mx table{min-width:1150px;overflow:visible;border-radius:0}.mx th,.mx td{border:1px solid var(--line);padding:4px 5px;font-size:.78rem;vertical-align:top}.mx th{position:sticky;top:0;background:var(--soft);text-align:center;font-size:.82rem;cursor:pointer;border-top:4px solid var(--c)}.mx td.tm{width:4.2em;min-width:4.2em;font-weight:700;white-space:normal;font-size:.95rem;line-height:1.35;background:var(--soft);position:sticky;left:0;z-index:1;box-shadow:1px 0 0 var(--line)}.mx th.tc{left:0;z-index:3;cursor:default;width:4.2em}.mx a.cell{display:block;padding:2px 6px;border-radius:5px;border-left:4px solid var(--c);background:#FBF7EE;margin:0 0 3px;cursor:pointer;color:var(--ink);font-size:.78rem;line-height:1.4}.mx a.cell:hover{background:#F3E9D6}.seg{display:inline-flex;border:1px solid var(--ink);border-radius:8px;overflow:hidden}.seg button{border:0;background:var(--paper);padding:5px 16px;cursor:pointer;font-size:.85rem}.seg button.on{background:var(--ink);color:#fff}.lk{cursor:pointer}.lk:hover td{background:#FBF7EE}.lk .dp u{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 th,td{padding:8px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.9rem}
 th{background:var(--soft);font-size:.78rem;letter-spacing:.05em;color:var(--mute)}
@@ -86,8 +86,8 @@ function nav(){
   let h=`<div class="brand">災害訓練 資料室<small>令和9年3月6日（土）</small></div>`+mk("home","入口");
   h+=`<div class="grp">全体</div>`+mk("assume","訓練想定")+mk("timeline","全体の流れ（あらすじ）")+mk("alltl","タイムライン（全部署）");
   h+=`<div class="grp">部署別台本</div>`+names.map(n=>mk("d:"+n,n,col(n))).join("");
-  h+=`<div class="grp">巻末</div>`+mk("roster","全体配役表");
-  $("#nav").innerHTML=h;$("#nav").querySelectorAll("a").forEach(a=>a.onclick=()=>go(a.dataset.v));
+  h+=`<div class="grp">巻末</div>`+mk("roster","全体配役表")+`<div class="grp">関連</div><a href="bcp.html" target="_blank" rel="noopener">BCPダイジェスト版</a>`;
+  $("#nav").innerHTML=h;$("#nav").querySelectorAll("a[data-v]").forEach(a=>a.onclick=()=>go(a.dataset.v));
 }
 function home(){
   let h=`<h1>災害訓練 資料室</h1><p class="sub">令和8年度 院内災害訓練　令和9年3月6日（土）午前</p>
@@ -130,9 +130,9 @@ function alltl(){
     h+=`</table></div>`;
   }else{
     const times=[];D.alltl.forEach(r=>{if(!times.includes(r.t))times.push(r.t)});
-    h+=`<div class="mx"><table><tr><th style="--c:#999;cursor:default;left:0;z-index:2">時刻</th>`+names.map(n=>`<th style="--c:${col(n)}" data-hd="${esc(n)}">${esc(n)}</th>`).join("")+`</tr>`;
+    h+=`<div class="mx"><table><tr><th class="tc" style="--c:#999">時刻</th>`+names.map(n=>`<th style="--c:${col(n)}" data-hd="${esc(n)}">${esc(n)}</th>`).join("")+`</tr>`;
     times.forEach(t=>{
-      h+=`<tr><td class="tm">${esc(t)}</td>`;
+      h+=`<tr><td class="tm">${esc(t).replace("〜","〜<br>")}</td>`;
       names.forEach(n=>{
         const cs=D.alltl.filter(r=>r.t===t&&r.dept===n);
         h+=`<td>`+cs.map(r=>`<a class="cell" style="--c:${col(n)}" data-d="${esc(n)}" data-j="${r.sj}">${esc(r.title)}</a>`).join("")+`</td>`});
