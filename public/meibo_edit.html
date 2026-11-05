@@ -1,0 +1,143 @@
+<title>訓練名簿エディタ</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f6f7f5;--card:#ffffff;--fg:#1f2a28;--mute:#68746f;--line:#dbe1dd;--acc:#0f766e;--acc-bg:#e3f2ef;--warn:#b45309;--inp:#ffffff;--ok:#15803d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a19;--card:#1c2423;--fg:#e6ece9;--mute:#9aa8a3;--line:#2e3a38;--acc:#4fd1c0;--acc-bg:#1d3532;--warn:#f0b35a;--inp:#121817;--ok:#6ee7a0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a19;--card:#1c2423;--fg:#e6ece9;--mute:#9aa8a3;--line:#2e3a38;--acc:#4fd1c0;--acc-bg:#1d3532;--warn:#f0b35a;--inp:#121817;--ok:#6ee7a0;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 "Hiragino Sans","Yu Gothic UI","Noto Sans JP",sans-serif;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:880px;margin:0 auto}
+header{padding:20px 0 8px}
+h1{font-size:20px;margin:0;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--mute);font-size:13px;margin:4px 0 0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab,.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:6px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
+.tab[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+:root[data-theme="dark"] .tab[aria-pressed="true"],:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#06201c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tab[aria-pressed="true"],:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#06201c}}
+.stat{margin-left:auto;font-size:13px;color:var(--mute)}
+.stat b{color:var(--fg)}
+#st.ok{color:var(--ok)} #st.err{color:var(--warn)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 4px}
+.chip{font-size:13px;padding:4px 11px}
+section.dept{margin-top:20px}
+h2{font-size:15px;margin:0 0 6px;padding-left:10px;border-left:4px solid var(--acc)}
+.rows{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.r{display:grid;grid-template-columns:48px minmax(0,1fr) minmax(0,190px);gap:4px 10px;padding:9px 12px;border-top:1px solid var(--line);align-items:center}
+.r:first-child{border-top:0}
+.t{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.n{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.w{grid-column:2;font-size:12.5px;color:var(--mute);min-width:0;overflow-wrap:anywhere}
+.r>input{grid-column:3;grid-row:1/span 2;width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--inp);color:var(--fg);min-width:0}
+.r>input:focus{outline:2px solid var(--acc);outline-offset:0}
+.r>input[readonly]{background:transparent;border-color:transparent}
+@media (max-width:560px){.r{grid-template-columns:44px minmax(0,1fr)}.r>input{grid-column:1/-1;grid-row:auto}.w{grid-column:2}}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px}
+th,td{padding:7px 10px;border-top:1px solid var(--line);text-align:left;vertical-align:top;overflow-wrap:anywhere}
+th{background:var(--acc-bg);font-size:12px;color:var(--mute);border-top:0}
+tr.sh td{background:var(--acc-bg);font-weight:600;font-size:13px}
+td.u{color:var(--mute)}
+td.in{padding:4px 6px}
+td.in input{width:100%;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--inp);color:var(--fg);min-width:0}
+td.in input:focus{outline:2px solid var(--acc)}
+td.in input[readonly]{background:transparent;border-color:transparent}
+.r.empty input,td.in.empty input{border-style:dashed}
+.scroll{overflow-x:auto}
+.note{font-size:13px;color:var(--mute);margin:10px 0}
+.note.warn{color:var(--warn)}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<div class="wrap">
+<header><h1>訓練名簿エディタ</h1>
+<p class="sub">令和8年度 院内災害訓練（令和9年3月6日）。氏名を入れると自動で保存され、全員の画面に反映されます。</p></header>
+<div class="bar">
+ <div class="tabs" id="tabs"></div>
+ <div class="stat"><button class="chip" id="exp" onclick="exportJson()">氏名を書き出す</button> <span id="st">接続中…</span> ／ 氏名あり <b id="cnt">0</b></div>
+</div>
+<div id="v"></div>
+</div>
+<script>
+const D={"roster": [{"dept": "", "role": "進行役", "what": "訓練全体の進行と時間管理。終了を宣言する", "time": "7:30", "name": "小田"}, {"dept": "災害対策本部", "role": "仮の本部長（当直医師役）", "what": "仮本部を設置し、院長へ申し送る", "time": "8:00", "name": "英（統括副院長）"}, {"dept": "災害対策本部", "role": "管理当直役", "what": "各部署の当直者から被害の報告を受け、本部へ報告する", "time": "7:30", "name": "櫻井副部長"}, {"dept": "災害対策本部", "role": "本部長", "what": "設置、レベル、終了を宣言する", "time": "8:30", "name": "川上院長"}, {"dept": "災害対策本部", "role": "本部ロジ①", "what": "時系列の記録と、EMIS入力。災害委員が担当", "time": "8:00", "name": ""}, {"dept": "災害対策本部", "role": "本部ロジ②", "what": "アルカディアの集計と、院内放送。災害委員が担当", "time": "8:00", "name": ""}, {"dept": "災害対策本部", "role": "本部員①", "what": "参集後に割り当てられた人。本部の指示で、連絡、電話対応、ホワイトボード記入をする", "time": "8:30", "name": "岡本部長"}, {"dept": "災害対策本部", "role": "本部員②", "what": "参集後に割り当てられた人。本部の指示で、連絡、電話対応、ホワイトボード記入をする", "time": "8:30", "name": "浦部長"}, {"dept": "災害対策本部", "role": "本部員③", "what": "参集後に割り当てられた人。本部の指示で、連絡、電話対応、ホワイトボード記入をする", "time": "8:30", "name": "久保課長"}, {"dept": "現地統括本部", "role": "現地統括リーダー", "what": "現地統括本部をまとめる。新設部門リーダーへ指示し、本部へ報告する情報を集める。災害委員が担当する", "time": "8:00", "name": ""}, {"dept": "現地統括本部", "role": "現地統括ロジ①", "what": "傷病者一覧の管理、病床・搬送の調整、各ゾーン報告のとりまとめ、院内放送の依頼。災害委員が担当", "time": "8:00", "name": ""}, {"dept": "現地統括本部", "role": "現地統括ロジ②", "what": "傷病者一覧の管理、病床・搬送の調整、各ゾーン報告のとりまとめ、院内放送の依頼。災害委員が担当", "time": "8:00", "name": ""}, {"dept": "現地統括本部", "role": "現地統括スタッフ①", "what": "参集後に割り当てられた人。事前に決めてある。現地統括リーダーの指示で動く（トイレ設置、赤ゾーンの応援、非常食の準備など）", "time": "8:30", "name": ""}, {"dept": "現地統括本部", "role": "現地統括スタッフ②", "what": "参集後に割り当てられた人。事前に決めてある。現地統括リーダーの指示で動く（トイレ設置、赤ゾーンの応援、非常食の準備など）", "time": "8:30", "name": ""}, {"dept": "現地統括本部", "role": "現地統括スタッフ③", "what": "参集後に割り当てられた人。事前に決めてある。現地統括リーダーの指示で動く（トイレ設置、赤ゾーンの応援、非常食の準備など）", "time": "8:30", "name": ""}, {"dept": "現地統括本部", "role": "現地統括スタッフ④", "what": "参集後に割り当てられた人。事前に決めてある。現地統括リーダーの指示で動く（トイレ設置、赤ゾーンの応援、非常食の準備など）", "time": "8:30", "name": ""}, {"dept": "現地統括本部", "role": "現地統括スタッフ⑤", "what": "参集後に割り当てられた人。事前に決めてある。現地統括リーダーの指示で動く（トイレ設置、赤ゾーンの応援、非常食の準備など）", "time": "8:30", "name": ""}, {"dept": "新設部門・外来", "role": "新設部門リーダー①", "what": "新設部門全体の責任者。開始を宣言する。現地統括本部の一員でもある", "time": "7:30", "name": "保脇副師長"}, {"dept": "新設部門・外来", "role": "トリアージ担当①", "what": "2人1組でトリアージを行う", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "トリアージ担当②", "what": "2人1組でトリアージを行う", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "トリアージ事務①", "what": "専用IDを作り、各ゾーンへ伝える", "time": "9:00", "name": ""}, {"dept": "新設部門・外来", "role": "緑ゾーン担当①", "what": "緑ゾーンの対応", "time": "9:00", "name": ""}, {"dept": "新設部門・外来", "role": "黄ゾーン担当①", "what": "黄ゾーンの観察と治療", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "黄ゾーン担当②", "what": "黄ゾーンの観察と治療", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "赤ゾーン担当①", "what": "赤ゾーンの対応", "time": "9:00", "name": ""}, {"dept": "新設部門・外来", "role": "黒ゾーン担当①", "what": "黒ゾーンの対応", "time": "9:00", "name": ""}, {"dept": "新設部門・外来", "role": "ゾーンスタッフ①", "what": "参集後に割り当てられた人。事前に決めてあるゾーンで、ゾーンのリーダー（医師）の指示で動く（①トリアージ ②緑 ③黄 ④⑤赤 ⑥黒）", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "ゾーンスタッフ②", "what": "参集後に割り当てられた人。事前に決めてあるゾーンで、ゾーンのリーダー（医師）の指示で動く（①トリアージ ②緑 ③黄 ④⑤赤 ⑥黒）", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "ゾーンスタッフ③", "what": "参集後に割り当てられた人。事前に決めてあるゾーンで、ゾーンのリーダー（医師）の指示で動く（①トリアージ ②緑 ③黄 ④⑤赤 ⑥黒）", "time": "8:35", "name": "友渕主任"}, {"dept": "新設部門・外来", "role": "ゾーンスタッフ④", "what": "参集後に割り当てられた人。事前に決めてあるゾーンで、ゾーンのリーダー（医師）の指示で動く（①トリアージ ②緑 ③黄 ④⑤赤 ⑥黒）", "time": "8:35", "name": "藤本"}, {"dept": "新設部門・外来", "role": "ゾーンスタッフ⑤", "what": "参集後に割り当てられた人。事前に決めてあるゾーンで、ゾーンのリーダー（医師）の指示で動く（①トリアージ ②緑 ③黄 ④⑤赤 ⑥黒）", "time": "8:35", "name": ""}, {"dept": "新設部門・外来", "role": "ゾーンスタッフ⑥", "what": "参集後に割り当てられた人。事前に決めてあるゾーンで、ゾーンのリーダー（医師）の指示で動く（①トリアージ ②緑 ③黄 ④⑤赤 ⑥黒）", "time": "8:35", "name": ""}, {"dept": "腎センター", "role": "腎センター責任者①", "what": "透析の可否を判断し、本部へ報告する", "time": "8:00", "name": ""}, {"dept": "腎センター", "role": "透析スタッフ①", "what": "安全確認と機器・資材の確認", "time": "7:30", "name": ""}, {"dept": "腎センター", "role": "透析スタッフ②", "what": "安全確認と機器・資材の確認", "time": "7:30", "name": ""}, {"dept": "腎センター", "role": "腎センターの委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "武田師長"}, {"dept": "手術室", "role": "手術室責任者①", "what": "被害をまとめ、本部へ報告する", "time": "7:30", "name": ""}, {"dept": "手術室", "role": "手術室看護師①", "what": "器械と衛生材料の確認", "time": "8:30", "name": ""}, {"dept": "手術室", "role": "手術室看護師②", "what": "器械と衛生材料の確認", "time": "8:30", "name": ""}, {"dept": "手術室", "role": "中材①", "what": "洗浄・滅菌室の確認", "time": "8:35", "name": ""}, {"dept": "手術室", "role": "中材②", "what": "洗浄・滅菌室の確認", "time": "8:35", "name": ""}, {"dept": "手術室", "role": "手術室の委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "吉垣内主任"}, {"dept": "病棟", "role": "病棟統括①", "what": "全病棟のとりまとめ", "time": "8:45", "name": ""}, {"dept": "病棟", "role": "3階東 看護師①", "what": "脳神経外科・糖尿病代謝内科", "time": "9:30", "name": ""}, {"dept": "病棟", "role": "3階西 看護師②", "what": "循環器・血管外科", "time": "9:30", "name": ""}, {"dept": "病棟", "role": "4階東 看護師③", "what": "消化器内科・外科", "time": "7:30", "name": ""}, {"dept": "病棟", "role": "4階西 看護師④", "what": "整形外科", "time": "9:30", "name": ""}, {"dept": "病棟", "role": "6階 看護師⑤", "what": "回復期リハ", "time": "9:30", "name": ""}, {"dept": "病棟", "role": "5階（閉棟中）", "what": "アクションカードの動きのみ", "time": "7:30", "name": ""}, {"dept": "病棟", "role": "病棟の委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "根木師長"}, {"dept": "薬剤部", "role": "薬剤部責任者①", "what": "被害と備蓄の状況を、本部へ報告する", "time": "8:30", "name": ""}, {"dept": "薬剤部", "role": "当直薬剤師①", "what": "7:30の当直者（委員が演じる）", "time": "7:30", "name": "小上"}, {"dept": "薬剤部", "role": "薬剤師②", "what": "紙の処方への対応", "time": "7:30", "name": ""}, {"dept": "検査科", "role": "検査科所属長", "what": "人員の招集と、業務の割り振り", "time": "7:30", "name": "久保技師長"}, {"dept": "検査科", "role": "当直検査技師①", "what": "7:30の当直者（委員が演じる）", "time": "7:30", "name": "原見主任"}, {"dept": "検査科", "role": "検査技師②", "what": "黄ゾーンの血液ガス検査", "time": "7:30", "name": ""}, {"dept": "検査科", "role": "検査技師③", "what": "赤ゾーンの血液ガス検査と、緊急輸血", "time": "7:30", "name": ""}, {"dept": "検査科", "role": "生理検査技師④", "what": "心電図検査", "time": "8:35", "name": ""}, {"dept": "検査科", "role": "応援の検査技師⑤", "what": "割り振られた部門で応援", "time": "8:35", "name": ""}, {"dept": "検査科", "role": "応援の検査技師⑥", "what": "割り振られた部門で応援", "time": "8:35", "name": ""}, {"dept": "放射線科", "role": "放射線科責任者①", "what": "被害確認と、本部への報告", "time": "8:30", "name": ""}, {"dept": "放射線科", "role": "当直放射線技師①", "what": "7:30の当直者（委員が演じる）", "time": "7:30", "name": "引網主任"}, {"dept": "放射線科", "role": "放射線技師②", "what": "ポータブル撮影とロジ活動", "time": "7:30", "name": ""}, {"dept": "放射線科", "role": "放射線技師③", "what": "ポータブル撮影とロジ活動", "time": "7:30", "name": ""}, {"dept": "栄養科", "role": "厨房マネージャー①", "what": "厨房の判断と、配膳の指揮", "time": "7:30", "name": ""}, {"dept": "栄養科", "role": "厨房調理師①", "what": "早出で勤務中の厨房スタッフ", "time": "7:30", "name": ""}, {"dept": "栄養科", "role": "厨房調理師②", "what": "早出で勤務中の厨房スタッフ", "time": "7:30", "name": ""}, {"dept": "栄養科", "role": "提供先（看護学生）", "what": "昼食を受け取る看護学生", "time": "7:30", "name": ""}, {"dept": "栄養科", "role": "栄養科の委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "谷山主任"}, {"dept": "リハ科", "role": "リハ科責任者①", "what": "被害を報告し、業務を割り振る", "time": "8:30", "name": ""}, {"dept": "リハ科", "role": "リハ科スタッフ①", "what": "他部門の応援とトイレ対応", "time": "7:30", "name": ""}, {"dept": "リハ科", "role": "リハ科スタッフ②", "what": "他部門の応援とトイレ対応", "time": "7:30", "name": ""}, {"dept": "リハ科", "role": "リハ科スタッフ③", "what": "他部門の応援とトイレ対応", "time": "7:30", "name": ""}, {"dept": "リハ科", "role": "リハ科の委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "岩本"}, {"dept": "ME", "role": "ME担当①", "what": "黄ゾーンの機器の配備と、電源・バッテリーの管理", "time": "8:30", "name": "友渕主任"}, {"dept": "ME", "role": "ME担当②", "what": "赤ゾーンの機器の配備と、電源・バッテリーの管理", "time": "8:30", "name": "藤本"}, {"dept": "経理（設備）", "role": "施設担当①", "what": "設備の確認と、燃料・給水の手配", "time": "8:30", "name": ""}, {"dept": "経理（設備）", "role": "防災センター担当①", "what": "ワイドスターの電話受け", "time": "9:45", "name": ""}, {"dept": "経理（設備）", "role": "事務②", "what": "本部設営の支援と、物品の調達", "time": "8:30", "name": ""}, {"dept": "経理（設備）", "role": "経理課の委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "大谷"}, {"dept": "地域連携（広報）", "role": "登院登録担当①", "what": "登院者管理表への記名と集計", "time": "8:00", "name": ""}, {"dept": "地域連携（広報）", "role": "広報担当②", "what": "院内放送の文案と、周知文書の準備", "time": "8:35", "name": ""}, {"dept": "地域連携（広報）", "role": "地域連携室の委員", "what": "初動アクションカードを、集合のときに本部へ持っていく", "time": "8:00", "name": "北野主任"}, {"dept": "医局", "role": "当直医役", "what": "7:30の当直医（8時集合の災害委員が演じる）", "time": "7:30", "name": "英（統括副院長）"}, {"dept": "医局", "role": "医局代表①", "what": "医師の配置を、本部と調整する", "time": "8:30", "name": ""}, {"dept": "医局", "role": "ゾーンリーダー（医師）①", "what": "トリアージセンターと、緑・黄・赤・黒ゾーンのリーダー", "time": "8:35", "name": ""}, {"dept": "医局", "role": "ゾーンリーダー（医師）②", "what": "トリアージセンターと、緑・黄・赤・黒ゾーンのリーダー", "time": "8:35", "name": ""}, {"dept": "医局", "role": "ゾーンリーダー（医師）③", "what": "トリアージセンターと、緑・黄・赤・黒ゾーンのリーダー", "time": "8:35", "name": ""}, {"dept": "医局", "role": "ゾーンリーダー（医師）④", "what": "トリアージセンターと、緑・黄・赤・黒ゾーンのリーダー", "time": "8:35", "name": ""}, {"dept": "医局", "role": "ゾーンリーダー（医師）⑤", "what": "トリアージセンターと、緑・黄・赤・黒ゾーンのリーダー", "time": "8:35", "name": ""}, {"dept": "看護学生", "role": "傷病者役（約15名）", "what": "第1〜3波で来院し、傷病者カードを演じる", "time": "9:00", "name": ""}, {"dept": "看護学生", "role": "外部役（約5名で兼任）", "what": "県（ワイドスター）・保健所（県立医大の転院搬送）・酒直・自衛隊・DMAT・家族・報道の入電や要請を演じる", "time": "9:45", "name": ""}], "meibo": [["医局", [["院長", "川上院長", "本部長、診療技術部長代行（放射線科、臨床検査科、リハ科、ME、栄養科）", "m:医局||院長|1"], ["委員", "英（統括副院長）", "当直医役、仮の本部長（当直医師役）", "m:医局||委員|1"], ["副院長", "小倉副院長", "", "m:医局||副院長|1"], ["医師①", "", "", "m:医局||医師①|1"], ["医師②", "", "", "m:医局||医師②|1"], ["医師③", "", "", "m:医局||医師③|1"], ["医師④", "", "", "m:医局||医師④|1"], ["医師⑤", "", "", "m:医局||医師⑤|1"], ["医師⑥", "", "", "m:医局||医師⑥|1"]]], ["看護部", [["副院長", "河原副院長", "", "m:看護部||副院長|1"], ["#", "看護部長室", "", ""], ["看護部長", "遠藤部長", "", "m:看護部|看護部長室|看護部長|1"], ["委員", "櫻井副部長", "管理当直役", "m:看護部|看護部長室|委員|1"], ["#", "病棟", "", ""], ["委員", "根木師長", "", "m:看護部|病棟|委員|1"], ["リンクナース", "山路", "6階病棟", "m:看護部|病棟|リンクナース|1"], ["リンクナース", "風神", "3西病棟", "m:看護部|病棟|リンクナース|2"], ["リンクナース", "上山", "4西病棟", "m:看護部|病棟|リンクナース|3"], ["リンクナース", "藪下", "4東病棟", "m:看護部|病棟|リンクナース|4"], ["看護師①", "", "", "m:看護部|病棟|看護師①|1"], ["看護師②", "", "", "m:看護部|病棟|看護師②|1"], ["看護師③", "", "", "m:看護部|病棟|看護師③|1"], ["看護師④", "", "", "m:看護部|病棟|看護師④|1"], ["看護師⑤", "", "", "m:看護部|病棟|看護師⑤|1"], ["看護師⑥", "", "", "m:看護部|病棟|看護師⑥|1"], ["#", "手術室", "", ""], ["委員", "吉垣内主任", "", "m:看護部|手術室|委員|1"], ["リンクナース", "井畑主任", "", "m:看護部|手術室|リンクナース|1"], ["看護師①", "", "", "m:看護部|手術室|看護師①|1"], ["看護師②", "", "", "m:看護部|手術室|看護師②|1"], ["看護師③", "", "", "m:看護部|手術室|看護師③|1"], ["滅菌技師①", "", "", "m:看護部|手術室|滅菌技師①|1"], ["滅菌技師②", "", "", "m:看護部|手術室|滅菌技師②|1"], ["#", "腎センター", "", ""], ["委員", "武田師長", "", "m:看護部|腎センター|委員|1"], ["リンクナース", "石谷", "", "m:看護部|腎センター|リンクナース|1"], ["看護師①", "", "", "m:看護部|腎センター|看護師①|1"], ["看護師②", "", "", "m:看護部|腎センター|看護師②|1"], ["看護師③", "", "", "m:看護部|腎センター|看護師③|1"], ["#", "外来", "", ""], ["委員", "保脇副師長", "新設部門リーダー", "m:看護部|外来|委員|1"], ["リンクナース", "大倉", "", "m:看護部|外来|リンクナース|1"], ["看護師①", "", "", "m:看護部|外来|看護師①|1"], ["看護師②", "", "", "m:看護部|外来|看護師②|1"], ["看護師③", "", "", "m:看護部|外来|看護師③|1"]]], ["薬剤部", [["薬剤部長", "岡本部長", "本部員", "m:薬剤部||薬剤部長|1"], ["委員", "小上", "当直薬剤師", "m:薬剤部||委員|1"], ["薬剤師①", "", "", "m:薬剤部||薬剤師①|1"], ["薬剤師②", "", "", "m:薬剤部||薬剤師②|1"], ["薬剤師③", "", "", "m:薬剤部||薬剤師③|1"]]], ["放射線科", [["委員", "引網主任", "当直放射線技師", "m:放射線科||委員|1"], ["技師①", "", "", "m:放射線科||技師①|1"], ["技師②", "", "", "m:放射線科||技師②|1"], ["技師③", "", "", "m:放射線科||技師③|1"]]], ["臨床検査科", [["委員", "原見主任", "当直検査技師", "m:臨床検査科||委員|1"], ["技師長", "久保技師長", "検査科所属長", "m:臨床検査科||技師長|1"], ["技師①", "", "", "m:臨床検査科||技師①|1"], ["技師②", "", "", "m:臨床検査科||技師②|1"], ["技師③", "", "", "m:臨床検査科||技師③|1"], ["技師④", "", "", "m:臨床検査科||技師④|1"], ["技師⑤", "", "", "m:臨床検査科||技師⑤|1"]]], ["リハ科", [["委員", "岩本", "", "m:リハ科||委員|1"], ["スタッフ①", "", "", "m:リハ科||スタッフ①|1"], ["スタッフ②", "", "", "m:リハ科||スタッフ②|1"], ["スタッフ③", "", "", "m:リハ科||スタッフ③|1"], ["スタッフ④", "", "", "m:リハ科||スタッフ④|1"]]], ["ME", [["委員", "小田", "進行役", "m:ME||委員|1"], ["ME①", "友渕主任", "黄へ応援", "m:ME||ME①|1"], ["ME②", "藤本", "赤へ応援", "m:ME||ME②|1"]]], ["栄養科", [["委員", "谷山主任", "", "m:栄養科||委員|1"], ["調理師①", "", "", "m:栄養科||調理師①|1"], ["調理師②", "", "", "m:栄養科||調理師②|1"], ["調理師③", "", "", "m:栄養科||調理師③|1"]]], ["事務部", [["事務部長", "浦部長", "本部員", "m:事務部||事務部長|1"], ["総務課長", "久保課長", "本部員", "m:事務部||総務課長|1"], ["委員", "大谷", "経理課および施設担当", "m:事務部||委員|1"], ["委員", "北野主任", "地域連携室", "m:事務部||委員|2"], ["事務①", "", "", "m:事務部||事務①|1"], ["事務②", "", "", "m:事務部||事務②|1"], ["事務③", "", "", "m:事務部||事務③|1"], ["事務④", "", "", "m:事務部||事務④|1"], ["事務⑤", "", "", "m:事務部||事務⑤|1"]]]]};
+const $=s=>document.querySelector(s);
+const roles=D.roster.map(r=>r.role);
+let names={};   // key -> name (from db)
+let ready=false,canWrite=null,view="meibo",deptF="all";
+const def={};   // key -> default
+D.roster.forEach(r=>def[r.role]=r.name||"");
+// 名簿（出席予定者）：各行は固定のキー(m:...)で氏名を持つ。配役表とは独立
+D.meibo.forEach(([dept,rows])=>rows.forEach(r=>{if(r[0]!=="#"&&r[3])def[r[3]]=r[1]||""}));
+const get=k=>(k in names)?names[k]:(def[k]||"");
+function setStatus(t,c){const s=$("#st");s.textContent=t;s.className=c||""}
+function count(){let c=new Set();D.meibo.forEach(([d,rows])=>rows.forEach(r=>{if(r[0]!=="#"&&r[3]){const n=get(r[3]).trim();if(n)c.add(n)}}));$("#cnt").textContent=c.size+"名"}
+// ---- 保存（1文書へのフィールド単位マージ。1回ずつ順に書く）
+let local={};let ref=null,q=[],busy=false,timers={};
+async function flush(){if(busy||!q.length)return;busy=true;const batch=Object.assign({},...q.splice(0));
+  try{if(ref)await ref.set({v:batch},{merge:true});else{local=Object.assign(local,batch);try{localStorage.setItem('meibo_local',JSON.stringify(local))}catch(e){}}setStatus(ref?"保存しました":"保存しました（この端末だけ）","ok")}
+  catch(e){setStatus("保存できません（通信を確認）","err")}
+  busy=false;flush()}
+function save(k,val){names[k]=val;count();clearTimeout(timers[k]);setStatus("入力中…");
+  timers[k]=setTimeout(()=>{q.push({[k]:val});flush()},600)}
+// ---- 画面
+function tabs(){const T=[["meibo","名簿（出席予定者）"],["yaku","配役表"]];
+  $("#tabs").innerHTML="";T.forEach(([id,l])=>{const b=document.createElement("button");b.className="tab";b.textContent=l;b.setAttribute("aria-pressed",view===id);b.onclick=()=>{view=id;tabs();render()};$("#tabs").append(b)})}
+function inp(key){const i=document.createElement("input");i.value=get(key);i.placeholder="未定";i.autocomplete="off";i.setAttribute("aria-label",key);
+  if(canWrite===false)i.readOnly=true;
+  i.oninput=()=>{save(key,i.value);const c=i.closest(".r")||i.closest("td");if(c)c.classList.toggle("empty",!i.value.trim())};return i}
+function row(label,what,time,key){const d=document.createElement("div");d.className="r"+(get(key).trim()?"":" empty");
+  const t=document.createElement("div");t.className="t";t.textContent=time||"";
+  const n=document.createElement("div");n.className="n";n.textContent=label;
+  const w=document.createElement("div");w.className="w";w.textContent=what||"";
+  d.append(t,n,w,inp(key));return d}
+function yaku(el){
+  const dn=[];D.roster.forEach(r=>{const d=r.dept||"進行";if(!dn.includes(d))dn.push(d)});
+  const c=document.createElement("div");c.className="chips";
+  [["all","すべて"],...dn.map(d=>[d,d])].forEach(([id,l])=>{const b=document.createElement("button");b.className="chip";b.textContent=l;b.setAttribute("aria-pressed",deptF===id);b.onclick=()=>{deptF=id;render()};c.append(b)});
+  el.append(c);
+  if(canWrite===false){const p=document.createElement("p");p.className="note warn";p.textContent="この画面は閲覧のみです（編集の権限がありません）。";el.append(p)}
+  dn.filter(d=>deptF==="all"||deptF===d).forEach(d=>{
+    const s=document.createElement("section");s.className="dept";const h=document.createElement("h2");h.textContent=d;
+    const rs=document.createElement("div");rs.className="rows";
+    D.roster.filter(r=>(r.dept||"進行")===d).forEach(r=>rs.append(row(r.role,r.what,r.time,r.role)));
+    s.append(h,rs);el.append(s)})}
+function meibo(el){
+  const p=document.createElement("p");p.className="note";p.textContent="出席予定者の一覧です。配役表とは別に入力します（役の数との照合は後で）。氏名は肩書きも一緒に（例：谷山主任）。";el.append(p);
+  if(canWrite===false){const q=document.createElement("p");q.className="note warn";q.textContent="この画面は閲覧のみです（編集の権限がありません）。";el.append(q)}
+  D.meibo.forEach(([dept,rows])=>{
+    const s=document.createElement("section");s.className="dept";const h=document.createElement("h2");h.textContent=dept;
+    const w=document.createElement("div");w.className="scroll";
+    const t=document.createElement("table");t.style.cssText="table-layout:fixed;min-width:460px";
+    t.innerHTML='<colgroup><col style="width:27%"><col style="width:33%"><col style="width:40%"></colgroup><tr><th>区分</th><th>氏名</th><th>役割・備考</th></tr>';
+    rows.forEach(r=>{const tr=document.createElement("tr");
+      if(r[0]==="#"){tr.className="sh";const td=document.createElement("td");td.colSpan=3;td.textContent=r[1];tr.append(td)}
+      else{const a=document.createElement("td");a.textContent=r[0];const b=document.createElement("td");b.append(inp(r[3]));b.className="in";const c=document.createElement("td");c.className="u";c.textContent=r[2]||"";tr.append(a,b,c)}
+      t.append(tr)});
+    w.append(t);s.append(h,w);el.append(s)})}
+function render(){const a=document.activeElement,keep=a&&a.tagName==="INPUT"&&a.closest("#v");if(keep)return; // 入力中は再描画しない
+  const el=$("#v");el.innerHTML="";({yaku,meibo})[view](el);count()}
+function renderForce(){const el=$("#v");el.innerHTML="";({yaku,meibo})[view](el);count()}
+tabs();renderForce();
+// ---- 接続（Firebase Firestore）
+const FB_CONFIG={apiKey:"AIzaSyDLZbMlsfZbNsj21xcN2q4geUDUa8ie7-s",authDomain:"saigai-kunren.firebaseapp.com",projectId:"saigai-kunren",storageBucket:"saigai-kunren.firebasestorage.app",messagingSenderId:"410240840342",appId:"1:410240840342:web:dcf2b06b0f74f03a4d48b7"};
+const DOC_KEY="k0524ce8145946d71869a";
+function applyNames(v){const editing=document.activeElement&&document.activeElement.tagName==="INPUT";
+  names=Object.assign({},v,Object.fromEntries(Object.entries(names).filter(([k])=>timers[k]&&!(k in v&&v[k]===names[k]))));
+  if(!editing)renderForce();else count()}
+(function(){
+  if(!FB_CONFIG.apiKey){
+    try{local=JSON.parse(localStorage.getItem('meibo_local')||'{}')}catch(e){}
+    applyNames(local);setStatus("Firebase未設定（この端末だけに保存）","err");return}
+  try{
+    firebase.initializeApp(FB_CONFIG);
+    ref=firebase.firestore().collection("meibo").doc(DOC_KEY);
+    const to=setTimeout(()=>setStatus("接続できていません","err"),10000);
+    ref.onSnapshot(s=>{clearTimeout(to);applyNames((s.exists&&s.data().v)||{});setStatus(s.metadata.fromCache?"同期中…":"最新","ok")},
+      e=>{clearTimeout(to);setStatus("接続エラー："+(e.code||""),"err")});
+  }catch(e){setStatus("接続エラー","err")}
+})();
+function exportJson(){const o=Object.assign({},defOut(),names);const blob=new Blob([JSON.stringify(names,null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="names_override.json";document.body.append(a);a.click();a.remove()}
+function defOut(){return {}}
+</script>
