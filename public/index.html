@@ -1,31 +1,49 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>災害訓練 資料</title>
+<html lang="ja"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>災害訓練 資料室</title>
 <style>
 :root{color-scheme:light}
 *{box-sizing:border-box}
-body{margin:0;background:#F7F5F0;color:#23262B;font:18px/1.7 "BIZ UDPGothic","Hiragino Sans","Meiryo",sans-serif}
-main{max-width:720px;margin:0 auto;padding:32px 16px 64px}
-h1{font-size:1.6rem;margin:0 0 4px;border-left:6px solid #B4531F;padding-left:12px}
-p.sub{margin:0 0 28px;color:#6A6F78}
-ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-a.card,div.card{display:block;background:#fff;border:1px solid #E1DDD3;border-radius:8px;padding:16px 18px;text-decoration:none;color:inherit}
-a.card:hover{border-color:#B4531F}
-.t{font-weight:700;font-size:1.1rem}
-.d{color:#6A6F78;font-size:.9rem}
-.soon{opacity:.55}
-.tag{font-size:.8rem;color:#6A6F78;margin-left:8px}
-</style></head><body><main>
-<h1>令和8年度 院内災害訓練</h1>
-<p class="sub">済生会和歌山病院 災害医療委員会 ／ 令和9年3月6日(土)</p>
-<ul>
-<li><a class="card" href="committee.html" target="_blank" rel="noopener"><div class="t">委員用 資料室</div><div class="d">訓練想定・タイムライン・部署別台本・全体配役表</div></a></li>
-<li><a class="card" href="drill_book.pdf" target="_blank" rel="noopener"><div class="t">台本(PDF)</div><div class="d">訓練想定・タイムライン・部署別台本・全体配役表(全50ページ)。ブラウザで開けない場合はこちら</div></a></li>
-<li><a class="card" href="participant.html" target="_blank" rel="noopener"><div class="t">一般参加者用</div><div class="d">当日の流れ・役割・訓練想定</div></a></li>
-<li><a class="card" href="bcp.html" target="_blank" rel="noopener"><div class="t">BCPダイジェスト版</div><div class="d">地震発生時の参集と対応の要点</div></a></li>
-<li><div class="card soon"><div class="t">看護学生用 資料<span class="tag">準備中</span></div><div class="d">傷病者役・外部役の参加者向け</div></div></li>
-</ul>
-<p class="sub" style="margin-top:22px;font-size:.85rem">最終更新 令和8年11月4日　<a href="iken_kanri.html" style="color:inherit" target="_blank" rel="noopener">管理者用</a></p>
-</main></body></html>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F7F5F0;color:#23262B;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;font-size:18px;padding:16px}
+.card{width:100%;max-width:380px;background:#fff;border:1px solid #E1DDD3;border-left:7px solid #B4531F;border-radius:12px;padding:24px 26px}
+h1{font-size:1.3rem;margin:0 0 2px}.sub{color:#6A6F78;font-size:.8rem;margin:0 0 14px}
+label{display:block;font-size:.8rem;color:#6A6F78;margin:12px 0 4px}
+input{width:100%;font:inherit;border:1px solid #D9D4C7;border-radius:8px;padding:9px 12px;background:#FFFDF2;color:#23262B}
+button{width:100%;margin-top:18px;font:inherit;font-weight:700;background:#23262B;color:#fff;border:0;border-radius:8px;padding:11px;cursor:pointer}
+button:disabled{opacity:.6}
+.note{margin-top:12px;font-size:.75rem;color:#6A6F78}
+.err{margin-top:10px;font-size:.85rem;color:#B3261E;min-height:1.2em}
+.w{display:none;text-align:center;font-size:1.7rem;font-weight:700}.w small{display:block;font-size:.8rem;color:#6A6F78;font-weight:400;margin-top:8px}
+</style></head><body>
+<form class="card" id="f" autocomplete="off"><h1>災害訓練 資料室</h1><p class="sub">令和9年3月6日（土）</p>
+<label for="p">合言葉</label><input id="p" type="password" required>
+<button id="b" type="submit">開く</button><div class="err" id="e"></div>
+<div class="note">合言葉は、お知らせしたものです。</div></form>
+<div class="w" id="w"><span id="wn"></span><small>資料室を開いています…</small></div>
+<script>
+(function(){
+const S="qnnQFRmgJqKVf+rQ7R5ffg==",V="Gk+Mg4AcoROSp+fB",C="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",IT=600000;
+const u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function dec(p){
+  const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveKey"]);
+  const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:u8(S),iterations:IT,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const r=await crypto.subtle.decrypt({name:"AES-GCM",iv:u8(V)},k,u8(C));
+  return new TextDecoder().decode(r);
+}
+const $=i=>document.getElementById(i);
+function open2(html){document.open();document.write(html);document.close()}
+function show(html){
+  $("f").style.display="none";$("wn").textContent="ようこそ";$("w").style.display="block";
+  setTimeout(()=>open2(html),1000);
+}
+try{const k=sessionStorage.getItem("drill_k");if(k&&window.crypto&&crypto.subtle){dec(k).then(h=>{$("f").style.display="none";open2(h)}).catch(()=>{try{sessionStorage.removeItem("drill_k")}catch(e){}})}}catch(e){}
+if(!(window.crypto&&crypto.subtle)){$("e").textContent="このブラウザでは開けません。Chrome または Edge をお使いください。";$("b").disabled=true}
+$("f").onsubmit=async ev=>{
+  ev.preventDefault();const p=$("p").value;$("e").textContent="";$("b").disabled=true;
+  try{const h=await dec(p);
+    try{sessionStorage.setItem("drill_k",p);localStorage.setItem("pub_k","1025")}catch(e){}
+    show(h);
+  }catch(e){$("e").textContent="合言葉が違います。";$("b").disabled=false}
+};
+})();
+</script></body></html>
