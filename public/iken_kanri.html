@@ -32,7 +32,7 @@ async function dec(p){
   return new TextDecoder().decode(r);
 }
 const $=i=>document.getElementById(i);
-const LK="<div class=\"box\"><b>名簿・配役表の編集</b>　<a href=\"meibo_edit.html\" target=\"_blank\" rel=\"noopener\">氏名を入力する（名簿エディタ）</a></div>";
+const LK="<div class=\"box\"><b>名簿・配役表の編集</b>　<a href=\"meibo_edit.html\" target=\"_blank\" rel=\"noopener\">氏名を入力する（名簿エディタ）</a></div><div class=\"box\"><b>Excelファイル（ダウンロード）</b><br><a href=\"meibo_3b9e78febfe014c174d90420.xlsx\" download=\"参加者名簿と配役_委員用.xlsx\">参加者名簿と配役（委員用）</a>　令和8年11月18日版<br><a href=\"shobyosha_3b9e78febfe014c174d90420.xlsx\" download=\"傷病者一覧_案.xlsx\">傷病者一覧（案）</a>　令和8年11月18日版</div>";
 function open2(html){if(html.indexOf("meibo_edit.html")<0)html=html.replace('<div class="box"><div class="drop" id="drop">',LK+'<div class="box"><div class="drop" id="drop">');document.open();document.write(html);document.close()}
 function show(name,html){
   $("f").style.display="none";$("wn").textContent=name+"、ようこそ";$("w").style.display="block";
